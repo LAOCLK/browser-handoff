@@ -59,7 +59,13 @@ def main() -> int:
     g.add_argument("--from-export")
     ap.add_argument("--download", action="store_true", help="顺手下载 OA 的那些")
     ap.add_argument("--out", default=os.path.expanduser("~/Downloads/papers"))
+    ap.add_argument("--delay", type=float, default=5.0,
+                    help="下载时每篇之间的间隔秒数（默认 5；低于 0.4 按 0.4 算）")
     args = ap.parse_args()
+
+    # 下载间隔：不能低于 0.4 秒；默认 5 秒是为了不触发出版社按 IP 的限流
+    # （ScienceDirect 连续下载会报 CPE00002，见 docs/gotchas.md 第 11 条）。
+    pause = max(args.delay, 0.4)
 
     dois = (read_dois_ris(args.from_export) if args.from_export
             else read_dois_file(args.dois_file))
@@ -92,7 +98,7 @@ def main() -> int:
     os.makedirs(args.out, exist_ok=True)
 
     if args.download and oa:
-        print("\n下载 %d 篇开放获取..." % len(oa))
+        print("\n下载 %d 篇开放获取（每篇间隔 %.1f 秒，防出版社限流）..." % (len(oa), pause))
         for item in oa:
             try:
                 path, why = lit_fetch.fetch_one([item["url"]], item, args.out)
@@ -102,7 +108,7 @@ def main() -> int:
                     print("  ⚠️  %s → %s" % (item["doi"], why))
             except Exception as exc:  # noqa: BLE001
                 print("  ❌ %s：%s" % (item["doi"], exc))
-            time.sleep(0.4)
+            time.sleep(pause)
 
     if closed:
         listing = os.path.join(args.out, "needs-login.txt")

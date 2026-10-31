@@ -122,8 +122,8 @@ python scripts\smoke_test.py
 ## 目录结构
 
 ```
-macos/     macOS 版（0.5.0）——Playwright + AppleScript 桥
-windows/   Windows 版（0.7.2）——Playwright + 扩展 + 本地回环桥
+macos/     macOS 版（0.5.4）——Playwright + AppleScript 桥
+windows/   Windows 版（0.7.5）——Playwright + 扩展 + 本地回环桥
 ```
 
 每个目录都是**完整可独立安装**的包：`install/` 安装器、`scripts/` 工具、`servers/` 桥服务、
