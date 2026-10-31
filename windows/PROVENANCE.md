@@ -1,21 +1,26 @@
-# 来源说明
+# Windows 版说明
 
-本目录（`windows/`）是 **Windows 移植版**，基于本仓库 `macos/` 的 macOS 实现（0.5.0）扩展而来。
+本目录是同一项目的 **Windows 实现**，与 `macos/` 出自同一作者、同一套设计。
 
-## 改了什么
+## 为什么要单独一版
 
-- 用「浏览器扩展 + 本地回环桥」替代 macOS 的 AppleScript 桥，因为 Windows 上
-  UI Automation 读不到 Chromium 的标签页与页面内容
-- 增加了 `click` / `type` / `snapshot` 工具，因此具备**操作**用户浏览器标签页的能力
-- 补齐了本地桥的鉴权（共享令牌 + Host/Origin 校验 + UUID 命令 id）
-- 修复了 MCP stdio 在 Windows 控制台代码页下的中文乱码问题
+macOS 版靠 AppleScript 读浏览器，而 Windows 上没有等价能力——实测 UI Automation
+读不到 Chromium 的标签页与网页内容（树是空的）。因此 Windows 版换了一条技术路线：
+
+| | macOS | Windows |
+|---|---|---|
+| 接管浏览器 | AppleScript（进程外脚本） | 浏览器扩展 + 本地回环桥 |
+| 通信 | 直接调用系统脚本接口 | `127.0.0.1:8790-8799` 长轮询 |
+| 能力 | 只读（标签 / 正文 / 开新标签） | 读 + **点击 / 输入 / 快照** |
+| 鉴权 | 系统级（无需令牌） | 共享令牌 + Host/Origin 校验 |
+
+## 两个版本共享的部分
+
+- 同一套 `SKILL.md` 行为规范（登录交回、人物核查、合规红线）
+- 同一套文献工具（`lit_search` / `lit_fetch` / `lit_triage` / `parse_export`）
+- 同一套安装器交互与 `--check` 体检设计
 
 ## 版本
 
 当前收录：**0.7.2**。各版本变更见本目录 `CHANGELOG.md`。
-
-## 说明
-
-- 移植工作由第三方完成，本仓库仅作分发
-- 除本目录 `CHANGELOG.md` 或文件头另有说明外，视同沿用仓库根目录的 MIT 许可
-- 如果你是该目录的作者并希望调整署名或许可，请提交 Issue / PR
+许可沿用餐仓库根目录的 MIT。
