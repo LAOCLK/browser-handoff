@@ -9,7 +9,7 @@ description: >
   Also covers literature work: 查文献、找某位学者的论文、下载全文（仅开放获取）、
   解析数据库导出文件.
 metadata:
-  version: "0.5.3"
+  version: "0.5.4"
   license: "MIT"
 ---
 

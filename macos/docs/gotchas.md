@@ -251,8 +251,9 @@ Access Denied (CPE00002) — Your IP address 203.0.113.42 has been blocked
 3. **先下 OA 那批**（HTTP 直连、不碰出版社），把需要登录的压到最少
 4. 触发后**如实告诉用户**：`被 ScienceDirect 限流（CPE00002），等约 8 分钟继续`
 
-对应到本插件的写法：`lit_fetch.py` 单篇调用天然满足"慢"；批量务必用
-`lit_triage.py --download`（它逐篇串行并带间隔），不要自己写 for 循环。
+对应到本插件的写法：`lit_fetch.py` 单篇调用天然满足"慢"；批量用
+`lit_triage.py --download`（串行、不并发，默认每篇间隔 **5 秒**，`--delay` 可调），
+不要自己写 for 循环。间隔别调太小——0.4 秒这种"机器节奏"正是触发限流的原因。
 
 **别做的事**：换 User-Agent、换代理池、并发重试——那是绕过限流，属于违约行为，
 而且只会让机构 IP 被封得更久。

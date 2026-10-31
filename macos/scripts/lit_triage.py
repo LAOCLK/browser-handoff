@@ -58,6 +58,8 @@ def main() -> int:
     g.add_argument("--dois-file")
     g.add_argument("--from-export")
     ap.add_argument("--download", action="store_true", help="顺手下载 OA 的那些")
+    ap.add_argument("--delay", type=float, default=5.0,
+                    help="下载之间的间隔秒数（默认 5；出版社按 IP 限流，别调太小）")
     ap.add_argument("--out", default=os.path.expanduser("~/Downloads/papers"))
     args = ap.parse_args()
 
@@ -102,7 +104,7 @@ def main() -> int:
                     print("  ⚠️  %s → %s" % (item["doi"], why))
             except Exception as exc:  # noqa: BLE001
                 print("  ❌ %s：%s" % (item["doi"], exc))
-            time.sleep(0.4)
+            time.sleep(max(args.delay, 0.4))
 
     if closed:
         listing = os.path.join(args.out, "needs-login.txt")
