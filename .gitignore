@@ -1,0 +1,17 @@
+# 工具目录（本地下载的 gh 二进制）
+.tools/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# 运行产物
+browser-artifacts/
+*.log
+
+# 本地凭证 —— 绝不要提交
+**/token.txt
+**/token.js
+!windows/extension/token.js
+.env
+.DS_Store

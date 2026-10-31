@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "browser-handoff bridge",
+  "version": "1.0.0",
+  "description": "让 DeepSeek Harness 读取你正在用的浏览器标签页和正文（browser-handoff 插件的 Windows 桥）。",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabs", "scripting", "alarms"],
+  "host_permissions": ["http://127.0.0.1/*", "<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

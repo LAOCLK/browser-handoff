@@ -1,0 +1,181 @@
+# 变更记录
+
+## 0.5.0 — 只做 macOS
+
+- **移除 Windows 适配**：安装器、脚本、文档里的 Windows 分支全部删掉
+- 安装器开头加平台守卫：非 macOS 直接退出，并说明原因（桥依赖 AppleScript，
+  Edge 通道按 macOS 应用布局适配）
+- 删除 `docs/windows-check.md`
+- README 顶部标明「仅支持 macOS」
+- 保留的通用处理：UTF-8 输出重定向、profile 锁重试（这两条在 macOS 上同样有益）
+
+## 0.4.10
+
+- **修一个规则失效的缺口**：真实会话日志显示，用户说「下载某位老师的文章」时，
+  agent 直接用 bash + Semantic Scholar 自己干了，**从未加载本 SKILL**，因此
+  「人物核查」规则完全没生效——它凭常识直接断定了是哪一位，没有向用户确认。
+- SKILL frontmatter 的 description 扩写，覆盖「查文献 / 找某位学者的论文 / 下载全文 /
+  解析导出文件」，提高技能被正确匹配的概率
+- 文献章节顶部加硬规则：**涉及具体学者，第一步必须列候选并让用户确认，哪怕很确定**
+
+## 0.4.9 — Windows 实测后修复
+
+在 Windows 10 25H2 + DSH 0.2.1-rc.5 上跑完验证，修了四个问题：
+
+- **安装重试**：DSH 运行时 `package.json.lock` 被占用会抛 EPERM，导致首次安装失败。
+  现在自动重试 3 次，仍失败则明确提示「先完全退出 DSH」
+- **中文乱码**：输出被重定向时 Python 用 GBK。所有脚本启动时自动切 UTF-8
+- **路径分隔符**：默认下载目录由 `~` 拼接改为 `os.path.join`，不再出现 `C:\Users\x/Downloads`
+- **自检临时目录**：Windows 沙盒里的 TEMP 子目录会 EPERM，改为优先用当前目录，
+  并对创建失败给出可操作的提示
+- 闭源文献的【需要你操作】提示改走 stdout——PowerShell 会把 stderr 渲染成红色错误
+- `docs/windows-check.md` 补「已知的 Windows 坑」：python 占位符、锁、乱码、截图路径限制
+
+## 0.4.8
+
+- 新增 `docs/windows-check.md`：Windows 验证清单（6 步 + 失败时回传什么 + 已知不支持项）
+- 无代码改动，仅补文档；版本号随之递增
+
+## 0.4.7
+
+**兼容性修复（重要）**
+
+- 修 Python 3.9 崩溃：`str | None` 这类 PEP 604 注解在 3.9 上会直接抛 TypeError，
+  导致 5 个脚本 import 阶段就挂。全部补上 `from __future__ import annotations`。
+  macOS 自带的 `/usr/bin/python3` 正是 3.9——之前只在 3.12 上测过，是测试盲区。
+- 冒烟测试的编译检查改为**内存 compile**，不再写 `.pyc`；沙盒或只读环境里也能跑通
+- 修 `--set-format` 单独使用时被「必须给 --doi」挡住的问题
+
+## 0.4.6
+
+- **需要用户操作时直接提示**：`lit_fetch` 遇到闭源、`lit_triage` 列出清单后，都会打印
+  「【需要你操作】」段落，写清下一步该点什么；SKILL 把这条列为硬性规则
+- 新增 `QUICKSTART.md`（三分钟上手，可直接发给别人）
+- SKILL 新增「文献工具怎么选」决策表：单篇 / 一批 / 全量 / 需登录 各用哪个
+
+## 0.4.5
+
+- 新增 `scripts/lit_triage.py`：批量 DOI 分流——免费的自动下载（HTTP，不碰浏览器），
+  付费的写入 `needs-login.txt` 等用户点名，严格按约定的三层规则执行
+- `lit_fetch.fetch_one()` 改为返回 `(路径, 原因)`，失败时能说清是「没有 PDF」还是「请求被拒」
+- 修两个 bug：`filename_for` 缺作者字段时 IndexError；`fetch_one` 内层 return 少了元组包装
+
+## 0.4.4
+
+- SKILL 新增「付费文献：单篇、点名、人工登录」三层规则：
+  A 用户自己下载（最稳）/ B 单篇按需下载（可接受）/ C 批量下载（禁止）
+- 明确顺序：先用 OpenAlex 把免费的全拿到 → 列付费清单 → 用户点名 → 才开浏览器
+- B 层写死边界：不循环、不遍历结果、每次间隔 ≥3 秒、遇风控立即停
+
+## 0.4.3
+
+- 新增 `scripts/parse_export.py`：解析用户导出的 RIS / BibTeX / WoS 制表符文件，
+  自动去重（DOI 优先，其次标题）、按被引与年份排序，支持 `--latest / --json / --csv`
+- SKILL 新增「闭源文献：用户导出，我解析」：把用户动作压到 3 步，其余全自动
+
+## 0.4.2
+
+- **格式询问移到最前面**：先问「PDF 还是 HTML」，10 秒不回答按 PDF；选择会持久化到
+  `~/.dsh/lit-fetch.json`，之后不再问。`--set-format` 随时改
+- 定了格式就不再中途二次询问：偏好 PDF 但只有网页版时直接报「未保存」（退出码 3）
+- 非交互环境（脚本/agent 调用）自动按已记住的格式或 PDF 执行，不会卡住
+
+## 0.4.1
+
+- 新增 `scripts/lit_fetch.py`：自动下载**开放获取**文献。只从 Unpaywall / OpenAlex 的
+  `best_oa_location` 与页面 `citation_pdf_url` 取文件，取不到就拒绝，不回退镜像
+- 格式策略：默认只要 PDF；只有网页版时**不擅自保存**，提示并以退出码 3 结束（= 询问用户）
+- 文件名规范：`年份-第一作者-标题.pdf`，按词边界截断
+
+## 0.4.0
+
+**定位调整：文献检索只走开放 API，浏览器只做合法的事。**
+
+- 新增 `scripts/lit_search.py`：OpenAlex + Crossref + Unpaywall 三源，输出 `OA` / `CLOSED`
+  并给出合法的 OA 副本链接；支持 `--json`、`--oa-only`、429 退避
+- 删除 `paper_lookup.py`（功能被 lit_search 覆盖）
+- SKILL 重写文献相关章节：
+  - 检索流程改为「定位人 → 用户确认 → 拉列表 → 判 OA → 合法取全文」
+  - 新增「绝对不能做的事」表：抓 WoS/Scopus/知网、抓 Google Scholar、Sci-Hub、绕付费墙、批量下载
+  - 新增「涉及用户个人信息时」：检索人名前必须先让用户确认
+  - 翻页技巧降级为「仅限允许抓取的站点」，不再用于订阅数据库
+
+## 0.3.8
+
+- **新增 `scripts/paper_lookup.py`**：用 OpenAlex 判断一篇文献是 `OA` 还是 `CLOSED`，
+  带 429 退避重试与 `OPENALEX_MAILTO` 礼貌池；CLOSED 才提示走浏览器
+- SKILL 新增三节：文献检索标准流程（OpenAlex 优先 → 浏览器兜底）、网页列表翻页、人物核查
+- SKILL 新增「合规边界」：批量下载 / 绕付费墙 / 自动化访问的界线
+
+## 0.3.7
+
+- `smoke_test.py` 支持 `--browser chrome|msedge`：装完 Edge 通道后可以单独验证
+  「Playwright 能不能真的拉起 Edge」——实测通过（`[msedge] 总体：通过`）
+- 自检标签会显示当前测的是哪个浏览器，避免误读
+
+## 0.3.6
+
+- **新增 `scripts/smoke_test.py`**：一条命令跑完编译检查、配置块生成、浏览器自检、本机安装状态
+  （`--quick` 跳过浏览器部分）；结束时自动清理 `__pycache__`
+- gotchas 第 12 条：虚拟滚动列表「节点存在但 innerText 为空」的识别与收集方法
+- 实测记录：用 Edge 通道完成 WoS 登录 + 检索 + 50 条结果抓取（全程无鼠标点击）
+
+## 0.3.5
+
+- **新增 `--self-test`**：一条命令验证整条链路（起浏览器 → 工具列表 → 页面渲染 → JS 执行），
+  装完不用猜「到底通没通」
+- 安装器结束时提示先跑自检
+- 修自检本身的一个断言错误（`document.title` 在 data: 页面为空，改为校验 title + body 文本）
+- 自检用临时目录跑，结束即删——不会在包里留下几十 MB 的 Chrome profile
+
+## 0.3.3
+
+- **卸载变可靠**：不再依赖备份文件；按标记把 playwright / browser / edge 三条通道
+  一起截断，用户自己的配置原样保留（含单测：假 DSH_HOME 上验证过）
+- **平台守卫**：浏览器桥依赖 AppleScript，非 macOS 直接跳过并说明，不再写入注定失败的配置
+- `--check` 增加通道存在性检查（主通道 / 桥 / Edge）
+- 新增本文件
+
+## 0.3.2
+
+- **新增 Edge 通道**：`--with-edge` / `--all`，用 Playwright 启动**真实的 Microsoft Edge**
+  （独立 profile，登录态持久），工具名 `mcp__edge__*`
+- **修正行为规范**：SKILL 原来写「用户说用 Edge 不能照字面执行」，正是 agent 自作主张
+  换方案（改去调 API）的根源。改为：先按用户指定的浏览器执行，通道确实不存在时才说明边界
+- 新增「不点击也能操作」的 JS 范式（赋值 + 派发事件 + 提交表单）
+
+## 0.3.1
+
+- 修 `open_url` 在 Chromium 上必失败的问题：`set active tab index` 改用 `open location`
+- SKILL 增加「用户点名某个浏览器时」与学术数据库注意事项
+
+## 0.3.0
+
+- `--extract`：自动滚动整页、逐屏收集文本、去重存盘（对付 canvas 渲染的在线文档）
+- SKILL 增加 canvas 文档的三步诊断；gotchas 第 9 条
+
+## 0.2.0
+
+- `servers/browser_bridge.py`：读取用户正在用的 Safari / Chrome / Edge
+- `--with-bridge` 安装开关
+- `get_text` 空结果自动重试 3 次
+
+## 0.1.4
+
+- `--check` 体检模式（版本对齐 + 配置完整性）
+
+## 0.1.3
+
+- 安装器自动读取 `dsh --version`，安装同版本插件（修 DSH 升级后工具全消失）
+
+## 0.1.2
+
+- SKILL 增加「站点适配表」：扫码 / 弹层 / iframe / 通用四种登录探针
+
+## 0.1.1
+
+- 修自定义 `--login-check` 恒为「已登录」、`--wait-login` 缺 `--url` 空等、安装器状态误报
+
+## 0.1.0
+
+- 首个版本：Playwright MCP 接线、登录交接流程、三种安装路径
