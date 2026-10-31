@@ -238,7 +238,7 @@ for (let i = 0; i < 40; i++) {
 `CPE00002`，同时给出一个 IP 地址。等 8 分钟左右再试又恢复。
 
 ```
-Access Denied (CPE00002) — Your IP address 114.245.38.200 has been blocked
+Access Denied (CPE00002) — Your IP address 203.0.113.42 has been blocked
 ```
 
 **原因**：Elsevier 有按 IP 的下载频率限制。机器节奏（每秒一篇）和人类节奏差别太大，
