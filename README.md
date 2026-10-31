@@ -4,8 +4,35 @@
 >
 > 让 AI 助手在**真实浏览器**里查文献、下全文；遇到登录墙就停下来，把窗口交还给你。
 
-一个给 AI 编码助手（DeepSeek Harness / Claude Desktop / Cursor / VS Code）用的技能包与命令行工具集。
+一个 **DeepSeek Harness 插件**，也可作为通用 MCP 配置用在 Claude Desktop / Cursor / VS Code。
 它把「浏览器自动化」和「文献检索」缝在一起，并且**把合规边界写死在代码和规则里**。
+
+---
+
+## 这是 DeepSeek Harness 插件
+
+本项目的主体是给 **DeepSeek Harness（DSH）** 用的插件；同一套代码也能当通用 MCP 服务器配置到别的客户端。
+
+### DSH 专属的部分
+
+| 文件 | 作用 |
+|---|---|
+| `install/install_dsh.py` | 直接改 `~/.dsh/profiles/<profile>/cordis.patch.yml`，注入 MCP 服务并做版本对齐 |
+| `SKILL.md` | 给 DSH agent 的行为规范：什么时候把窗口交回用户、怎么判断登录完成、合规红线。**没有它，agent 不知道要交回** |
+| `@deepseek-ai/dsh-mcp-client` | 版本必须与 `dsh --version` **完全一致**；不一致会静默加载失败——工具直接消失，不报错 |
+
+安装器会自动读取 `dsh --version` 并对齐客户端版本。**DSH 升级后重跑一次安装器即可**，
+这是最容易踩的坑（升级 DSH 后插件"不见了"，多半就是这个原因）。
+
+### 其他客户端
+
+`install/claude-desktop.json`、`install/cursor-mcp.json`、`install/vscode-mcp.json`
+是通用 MCP 配置，复制到对应位置即可。但这些客户端没有 DSH 的 skill 机制，
+**交回规则需要你自己写进系统提示词**，否则 agent 遇到登录墙只会报失败。
+
+### 兼容性
+
+在 **DSH 0.2.1-rc.5** 上实测通过。macOS 与 Windows 两条线分别验证，各自独立演进。
 
 ---
 
