@@ -149,7 +149,7 @@ python scripts\smoke_test.py
 ## 目录结构
 
 ```
-macos/     macOS 版（0.5.4）——Playwright + AppleScript 桥
+macos/     macOS 版（0.5.5）——Playwright + AppleScript 桥
 windows/   Windows 版（0.7.5）——Playwright + 扩展 + 本地回环桥
 ```
 
