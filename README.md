@@ -150,7 +150,7 @@ python scripts\smoke_test.py
 
 ```
 macos/     macOS 版（0.5.5）——Playwright + AppleScript 桥
-windows/   Windows 版（0.7.5）——Playwright + 扩展 + 本地回环桥
+windows/   Windows 版（0.7.6）——Playwright + 扩展 + 本地回环桥
 ```
 
 每个目录都是**完整可独立安装**的包：`install/` 安装器、`scripts/` 工具、`servers/` 桥服务、

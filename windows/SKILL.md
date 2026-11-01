@@ -5,10 +5,12 @@ description: >
   read and operate the browser the user is already using (tabs, page text,
   click, fill), and hand control back to the human whenever a page needs login,
   payment, 2FA or a captcha. Use when reading a page behind a login or paywall,
-  when plain HTTP fetching is blocked, when downloading papers, or when the user
-  says 需要登录 / 打不开 / 付费 / 你来点 / 演示一下.
+  when plain HTTP fetching is blocked, or when downloading papers. Use it
+  implicitly too when the task needs scholarly sources but doesn't say so:
+  写综述、写引言、调研某个方向的研究现状、核实某篇论文或某个说法有没有研究支持.
+  Also use it when the user says 需要登录 / 打不开 / 付费 / 你来点 / 演示一下.
 metadata:
-  version: "0.7.5"
+  version: "0.7.6"
   license: "MIT"
 ---
 
@@ -365,6 +367,29 @@ python scripts/browser_probe.py --url "https://example.com" --wait-login 600 \
 **同类情况**：Cookie 同意弹层、语言选择弹层、新功能引导。它们也会吃掉点击和回车
 （表现为"输入了但没反应"）。先查有没有遮罩，再判断是不是真的在操作页面——
 这是排查"点了没反应"的第一顺位。
+
+## 先问一次：要「快」还是「全」
+
+动手检索前问用户一句（一个任务只问一次）：
+
+> 这次要**快速**（只拿开放获取的，不登录，几秒出结果）
+> 还是**完整**（尽可能多，需要时会弹登录窗口让你登录）？
+
+| 模式 | 做什么 | 不做什么 |
+|---|---|---|
+| 快速 | 只取 OpenAlex / Unpaywall 能免费用到的 | 不弹窗、不登录、不排队等 |
+| 完整 | 先下完所有 OA，再逐篇开窗让用户登录 | 不问「要不要我打开浏览器」，直接开 |
+
+免问情形：
+
+- 用户说「全部/尽可能多/写综述」→ 直接完整
+- 用户说「随便几篇/赶时间」→ 直接快速
+- 没说清楚 → 问一句，10 秒不答按快速
+- 只是查一篇 DOI → 不问
+
+快速模式撞到付费墙：列出来 + 「快速模式下跳过，需要的话告诉我」，不要开窗、不要报「无法访问」。
+
+完整模式：登录是预授权的，先弹窗再说话。
 
 ## 文献检索：只走开放 API
 
